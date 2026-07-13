@@ -1,0 +1,290 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum CartStatus {
+  ACTIVE
+  CONVERTED
+  ABANDONED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+  FREE_DELIVERY
+}
+
+enum PaymentMethod {
+  COD
+  BKASH
+  NAGAD
+  CARD
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  role          Role     @default(CUSTOMER)
+  name          String
+  email         String   @unique
+  password      String?
+  isVerified    Boolean  @default(false)
+  googleId      String?
+  phone         String?
+  loyaltyPoints Int      @default(0)
+  isBlacklisted Boolean  @default(false)
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addresses Address[]
+  carts     Cart[]
+  orders    Order[]
+  wishlists Wishlist[]
+  reviews   Review[]
+
+  @@index([email])
+}
+
+model Address {
+  id             String  @id @default(uuid())
+  userId         String
+  type           String?
+  street         String
+  city           String
+  phoneAlternate String?
+  isDefault      Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String @unique
+  slug String @unique
+
+  books Book[]
+
+  @@index([slug])
+}
+
+model Author {
+  id   String  @id @default(uuid())
+  name String
+  bio  String?
+
+  books Book[]
+}
+
+model Publisher {
+  id      String  @id @default(uuid())
+  name    String
+  details String?
+
+  books Book[]
+}
+
+model Book {
+  id              String   @id @default(uuid())
+  title           String
+  categoryId      String
+  authorId        String
+  publisherId     String
+  description     String?
+  insidePreview   String?
+  isbn            String   @unique
+  pages           Int?
+  edition         String?
+  language        String?
+  weight          Float?
+  price           Decimal
+  discountPercent Int      @default(0)
+  stock           Int      @default(0)
+  deliveryTime    String?
+  isActive        Boolean  @default(true)
+  imageUrls       String[]
+
+  category  Category  @relation(fields: [categoryId], references: [id])
+  author    Author    @relation(fields: [authorId], references: [id])
+  publisher Publisher @relation(fields: [publisherId], references: [id])
+
+  comboItems ComboItem[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  wishlists  Wishlist[]
+  reviews    Review[]
+
+  @@index([title])
+  @@index([isbn])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([publisherId])
+}
+
+model Combo {
+  id        String   @id @default(uuid())
+  title     String
+  price     Decimal
+  isActive  Boolean  @default(true)
+  imageUrls String[]
+
+  comboItems ComboItem[]
+  orderItems OrderItem[]
+}
+
+model ComboItem {
+  id      String @id @default(uuid())
+  comboId String
+  bookId  String
+
+  combo Combo @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  book  Book  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([comboId])
+  @@index([bookId])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String?
+  sessionId String?
+  status    CartStatus @default(ACTIVE)
+  updatedAt DateTime   @updatedAt
+
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  cartItems CartItem[]
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model CartItem {
+  id       String @id @default(uuid())
+  cartId   String
+  bookId   String
+  quantity Int    @default(1)
+
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([cartId])
+  @@index([bookId])
+}
+
+model Coupon {
+  id         String     @id @default(uuid())
+  code       String     @unique
+  type       CouponType
+  value      Decimal
+  minSpend   Decimal?
+  validUntil DateTime
+
+  orders Order[]
+
+  @@index([code])
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  orderNumber   String        @unique
+  userId        String
+  addressId     String
+  subtotal      Decimal
+  pointsUsed    Int           @default(0)
+  couponId      String?
+  grandTotal    Decimal
+  paymentMethod PaymentMethod
+  paymentStatus String?
+  orderStatus   OrderStatus   @default(NEW)
+  trackingLink  String?
+  createdAt     DateTime      @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  address    Address     @relation(fields: [addressId], references: [id])
+  coupon     Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@index([userId])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  bookId    String?
+  comboId   String?
+  quantity  Int
+  unitPrice Decimal
+
+  order Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  book  Book?  @relation(fields: [bookId], references: [id], onDelete: SetNull)
+  combo Combo? @relation(fields: [comboId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([bookId])
+  @@index([comboId])
+}
+
+model Wishlist {
+  id     String @id @default(uuid())
+  userId String
+  bookId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+  @@index([bookId])
+}
+
+model Review {
+  id         String  @id @default(uuid())
+  userId     String
+  bookId     String
+  orderId    String
+  rating     Int
+  reviewText String?
+  isApproved Boolean @default(false)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book  Book  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([orderId])
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  otp       String
+  expiresAt DateTime
+
+  @@index([email])
+}
