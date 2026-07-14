@@ -63,4 +63,62 @@ const getPublishers = async (req, res, next) => {
     }
 };
 
-module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos, getAuthors, getPublishers };
+const getNewArrivals = async (req, res, next) => {
+    try {
+        const books = await catalogService.getNewArrivals();
+        res.status(200).json({ success: true, books });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getBestSellers = async (req, res, next) => {
+    try {
+        const books = await catalogService.getBestSellers();
+        res.status(200).json({ success: true, books });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getTopAuthors = async (req, res, next) => {
+    try {
+        const authors = await catalogService.getTopAuthors();
+        res.status(200).json({ success: true, authors });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getTopPublishers = async (req, res, next) => {
+    try {
+        const publishers = await catalogService.getTopPublishers();
+        res.status(200).json({ success: true, publishers });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getBooksByCategory = async (req, res, next) => {
+    try {
+        const result = await catalogService.getBooksByCategory(req.params.slug);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = {
+    getBooks,
+    searchBooks,
+    getBookById,
+    getCategories,
+    getCombos,
+    getAuthors,
+    getPublishers,
+    getNewArrivals,
+    getBestSellers,
+    getTopAuthors,
+    getTopPublishers,
+    getBooksByCategory,
+};

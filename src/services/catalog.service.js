@@ -14,6 +14,7 @@ const getBooks = async (filters) => {
     if (sortBy === 'price_asc') orderBy = { price: 'asc' };
     else if (sortBy === 'price_desc') orderBy = { price: 'desc' };
     else if (sortBy === 'title_asc') orderBy = { title: 'asc' };
+    else if (sortBy === 'newest') orderBy = { createdAt: 'desc' };
 
     // Run count and query in parallel for max performance
     const [books, total] = await Promise.all([
@@ -119,4 +120,113 @@ const getPublishers = async () => {
     });
 };
 
-module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos, getAuthors, getPublishers };
+const getBooksByCategory = async (slug) => {
+    const category = await prisma.category.findUnique({
+        where: { slug },
+    });
+
+    if (!category) {
+        throw { statusCode: 404, message: 'Category not found' };
+    }
+
+    const books = await prisma.book.findMany({
+        where: { isActive: true, categoryId: category.id },
+        include: {
+            author: { select: { id: true, name: true } },
+            publisher: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    return { category, books };
+};
+
+const getNewArrivals = async () => {
+    return prisma.book.findMany({
+        where: { isActive: true },
+        include: {
+            category: { select: { id: true, name: true, slug: true } },
+            author: { select: { id: true, name: true } },
+            publisher: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+    });
+};
+
+const getBestSellers = async () => {
+    // Aggregate total units sold per book from completed order items
+    const topItems = await prisma.orderItem.groupBy({
+        by: ['bookId'],
+        _sum: { quantity: true },
+        where: { bookId: { not: null } },
+        orderBy: { _sum: { quantity: 'desc' } },
+        take: 10,
+    });
+
+    const bookIds = topItems.map(item => item.bookId);
+
+    const books = await prisma.book.findMany({
+        where: { id: { in: bookIds }, isActive: true },
+        include: {
+            category: { select: { id: true, name: true, slug: true } },
+            author: { select: { id: true, name: true } },
+            publisher: { select: { id: true, name: true } },
+        },
+    });
+
+    // Reorder to match the sorted rank and attach totalSold
+    return bookIds
+        .map(id => {
+            const book = books.find(b => b.id === id);
+            const item = topItems.find(i => i.bookId === id);
+            if (!book) return null;
+            return { ...book, totalSold: item._sum.quantity };
+        })
+        .filter(Boolean);
+};
+
+const getTopAuthors = async () => {
+    // Top 10 authors by number of active books in the catalog
+    const authors = await prisma.author.findMany({
+        include: {
+            _count: { select: { books: true } },
+        },
+    });
+
+    return authors
+        .map(a => ({ ...a, bookCount: a._count.books }))
+        .sort((a, b) => b.bookCount - a.bookCount)
+        .slice(0, 10)
+        .map(({ _count, ...rest }) => rest);
+};
+
+const getTopPublishers = async () => {
+    // Top 10 publishers by number of active books in the catalog
+    const publishers = await prisma.publisher.findMany({
+        include: {
+            _count: { select: { books: true } },
+        },
+    });
+
+    return publishers
+        .map(p => ({ ...p, bookCount: p._count.books }))
+        .sort((a, b) => b.bookCount - a.bookCount)
+        .slice(0, 10)
+        .map(({ _count, ...rest }) => rest);
+};
+
+module.exports = {
+    getBooks,
+    searchBooks,
+    getBookById,
+    getCategories,
+    getCombos,
+    getAuthors,
+    getPublishers,
+    getBooksByCategory,
+    getNewArrivals,
+    getBestSellers,
+    getTopAuthors,
+    getTopPublishers,
+};

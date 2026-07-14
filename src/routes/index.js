@@ -7,6 +7,7 @@ const catalogRoutes = require('./catalog.routes');
 const adminRoutes = require('./admin.routes');
 const orderRoutes = require('./order.routes');
 const reviewRoutes = require('./review.routes');
+const siteReviewRoutes = require('./siteReview.routes');
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use('/addresses', addressRoutes);
 router.use('/cart', cartRoutes);
 router.use('/orders', orderRoutes);
 router.use('/reviews', reviewRoutes);
+router.use('/site-reviews', siteReviewRoutes);
 router.use('/admin', adminRoutes);
 
 module.exports = router;

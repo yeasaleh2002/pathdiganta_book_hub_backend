@@ -4,11 +4,13 @@ const adminController = require('../controllers/admin.controller');
 const adminOrderController = require('../controllers/adminOrder.controller');
 const analyticsController = require('../controllers/analytics.controller');
 const reviewController = require('../controllers/review.controller');
+const siteReviewController = require('../controllers/siteReview.controller');
 const validateRequest = require('../middlewares/validateRequest');
 const { isAuthenticated, isAdmin } = require('../middlewares/authMiddleware');
 const { bookSchema, updateBookSchema, categorySchema, authorSchema, publisherSchema, comboSchema, couponSchema } = require('../validations/admin.validation');
 const { updateOrderStatusSchema } = require('../validations/order.validation');
 const { updateReviewStatusSchema } = require('../validations/review.validation');
+const { updateSiteReviewStatusSchema } = require('../validations/siteReview.validation');
 
 // Protect all admin routes securely
 router.use(isAuthenticated, isAdmin);
@@ -49,7 +51,11 @@ router.put('/orders/:id/status', validateRequest(updateOrderStatusSchema), admin
 router.get('/analytics/dashboard', analyticsController.getDashboard);
 router.get('/analytics/top-selling-books', analyticsController.getTopSellingBooks);
 
-// Reviews (Admin Moderation)
+// Reviews (Admin Moderation — book reviews)
 router.put('/reviews/:id/status', validateRequest(updateReviewStatusSchema), reviewController.updateReviewStatus);
+
+// Site Reviews (Admin Moderation)
+router.get('/site-reviews/pending', siteReviewController.getPendingSiteReviews);
+router.put('/site-reviews/:id/status', validateRequest(updateSiteReviewStatusSchema), siteReviewController.updateSiteReviewStatus);
 
 module.exports = router;

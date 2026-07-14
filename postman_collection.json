@@ -1,12 +1,12 @@
 {
     "info": {
         "name": "Pathdigonto Book Hub API",
-        "description": "Complete collection for Pathdigonto Backend Endpoints.",
+        "description": "Complete collection for Pathdigonto Backend. Base URL variable: {{baseUrl}} (default: http://localhost:5000). JWT is auto-saved to {{jwt_token}} on Login / Verify Registration.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
-            "name": "Auth",
+            "name": "🔐 Auth",
             "item": [
                 {
                     "name": "Register User",
@@ -16,36 +16,27 @@
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/register",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "auth",
-                                "register"
-                            ]
-                        }
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "register"]
+                        },
+                        "description": "Creates an unverified user account and sends a 6-digit OTP to the provided email.\n\n**Response:** `{ success, message }`"
                     }
                 },
                 {
-                    "name": "Verify Registration",
+                    "name": "Verify Registration (OTP)",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "if(jsonData.token) {",
+                                    "if (jsonData.token) {",
                                     "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"✅ JWT saved:\", jsonData.token);",
                                     "}"
                                 ],
                                 "type": "text/javascript"
@@ -58,36 +49,27 @@
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"123456\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/verify-registration",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "auth",
-                                "verify-registration"
-                            ]
-                        }
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "verify-registration"]
+                        },
+                        "description": "Verifies the OTP, activates the account, and issues a JWT token.\n\n**Response:** `{ success, token, user: { id, name, email, role } }`"
                     }
                 },
                 {
-                    "name": "Login User",
+                    "name": "Login",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
                                     "var jsonData = pm.response.json();",
-                                    "if(jsonData.token) {",
+                                    "if (jsonData.token) {",
                                     "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "    console.log(\"✅ JWT saved:\", jsonData.token);",
                                     "}"
                                 ],
                                 "type": "text/javascript"
@@ -100,68 +82,383 @@
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/auth/login",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "auth",
-                                "login"
-                            ]
-                        }
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "login"]
+                        },
+                        "description": "Authenticates via email + password and returns a JWT.\n\n**Response:** `{ success, token, user: { id, name, email, role } }`"
+                    }
+                },
+                {
+                    "name": "Google SSO Login",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"idToken\": \"<google_id_token_from_frontend>\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/google",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "google"]
+                        },
+                        "description": "Verifies a Google ID token and creates/logs in the user.\n\n**Response:** `{ success, token, user: { id, name, email, role } }`"
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/logout",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "auth", "logout"]
+                        },
+                        "description": "Invalidates the session / clears cookies.\n\n**Response:** `{ success, message }`"
                     }
                 }
             ]
         },
         {
-            "name": "Catalog",
+            "name": "👤 User & Profile",
             "item": [
                 {
-                    "name": "Get Books (Filtered)",
+                    "name": "Get My Profile",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/users/me",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "users", "me"]
+                        },
+                        "description": "Fetches the authenticated user's full profile.\n\n**Response:** `{ success, user: { id, name, email, phone, loyaltyPoints, role } }`"
+                    }
+                },
+                {
+                    "name": "Update My Profile",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Jane Doe\",\n    \"phone\": \"01712345678\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/users/me",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "users", "me"]
+                        },
+                        "description": "Updates name and/or phone for the authenticated user.\n\n**Response:** `{ success, user: { id, name, phone } }`"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📍 Addresses",
+            "item": [
+                {
+                    "name": "Create Address",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"street\": \"House 12, Road 5, Banani\",\n    \"city\": \"Dhaka\",\n    \"type\": \"home\",\n    \"phoneAlternate\": \"01812345678\",\n    \"isDefault\": true\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/addresses",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "addresses"]
+                        },
+                        "description": "Creates a new shipping address for the user.\n\n**Response:** `{ success, address: { id, street, city, isDefault } }`"
+                    }
+                },
+                {
+                    "name": "List My Addresses",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/addresses",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "addresses"]
+                        },
+                        "description": "Lists all saved addresses for the authenticated user.\n\n**Response:** `{ success, addresses: [...] }`"
+                    }
+                },
+                {
+                    "name": "Update Address",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"street\": \"House 7, Gulshan Avenue\",\n    \"city\": \"Dhaka\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/addresses/{{addressId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "addresses", "{{addressId}}"]
+                        },
+                        "description": "Updates an existing address by its ID.\n\n**Response:** `{ success, address: { ... } }`"
+                    }
+                },
+                {
+                    "name": "Delete Address",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/addresses/{{addressId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "addresses", "{{addressId}}"]
+                        },
+                        "description": "Deletes a shipping address by its ID.\n\n**Response:** `{ success, message }`"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "📚 Catalog — Books",
+            "item": [
+                {
+                    "name": "Get Books (Paginated + Filters)",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/books?limit=10&page=1&sortBy=price_asc",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "books"
-                            ],
+                            "raw": "{{baseUrl}}/api/v1/books?page=1&limit=20&sortBy=price_asc",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "books"],
                             "query": [
-                                {
-                                    "key": "limit",
-                                    "value": "10"
-                                },
-                                {
-                                    "key": "page",
-                                    "value": "1"
-                                },
-                                {
-                                    "key": "sortBy",
-                                    "value": "price_asc"
-                                }
+                                { "key": "page", "value": "1" },
+                                { "key": "limit", "value": "20" },
+                                { "key": "sortBy", "value": "price_asc", "description": "Options: price_asc | price_desc | title_asc | newest" },
+                                { "key": "categoryId", "value": "", "disabled": true, "description": "Filter by category UUID" },
+                                { "key": "authorId", "value": "", "disabled": true, "description": "Filter by author UUID" },
+                                { "key": "publisherId", "value": "", "disabled": true, "description": "Filter by publisher UUID" }
                             ]
-                        }
+                        },
+                        "description": "Returns paginated books with optional filters.\n\n**Response:** `{ success, books: [...], meta: { total, page, limit, totalPages } }`"
+                    }
+                },
+                {
+                    "name": "🆕 New Arrivals (Latest 10)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/books/new-arrivals",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "books", "new-arrivals"]
+                        },
+                        "description": "Returns the 10 most recently added active books, sorted by `createdAt DESC`.\n\n**Response:** `{ success, books: [{ id, title, price, imageUrls, author, publisher, category, createdAt }] }`"
+                    }
+                },
+                {
+                    "name": "🏆 Best Sellers (Top 10)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/books/best-sellers",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "books", "best-sellers"]
+                        },
+                        "description": "Returns the top 10 books by total units sold across all orders.\n\n**Response:** `{ success, books: [{ id, title, price, imageUrls, totalSold, author, publisher, category }] }`"
+                    }
+                },
+                {
+                    "name": "Search Books (Autocomplete)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/books/search?q=Harry",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "books", "search"],
+                            "query": [{ "key": "q", "value": "Harry" }]
+                        },
+                        "description": "Case-insensitive title search, returns up to 10 matches.\n\n**Response:** `{ success, books: [{ id, title, price, imageUrls, author }] }`"
+                    }
+                },
+                {
+                    "name": "Get Book by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/books/{{bookId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "books", "{{bookId}}"]
+                        },
+                        "description": "Returns full book detail including category, author, publisher, combo links, and top 10 approved reviews.\n\n**Response:** `{ success, book: { ...allFields, category, author, publisher, reviews, comboItems } }`"
+                    }
+                },
+                {
+                    "name": "Get All Categories",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/categories",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "categories"]
+                        },
+                        "description": "Returns all categories sorted alphabetically.\n\n**Response:** `{ success, categories: [{ id, name, slug }] }`"
+                    }
+                },
+                {
+                    "name": "🗂️ Get Books by Category Slug",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/categories/fiction/books",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "categories", "fiction", "books"]
+                        },
+                        "description": "Returns all active books filtered by category slug (e.g. `fiction`, `science`, `history`).\n\n**Response:** `{ success, category: { id, name, slug }, books: [...] }`"
+                    }
+                },
+                {
+                    "name": "Get Combos",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/combos",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "combos"]
+                        },
+                        "description": "Returns all active combo offers with nested book details.\n\n**Response:** `{ success, combos: [{ id, title, price, imageUrls, comboItems: [{ book }] }] }`"
                     }
                 }
             ]
         },
         {
-            "name": "Cart",
+            "name": "👤 Authors",
             "item": [
+                {
+                    "name": "Get All Authors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/authors",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "authors"]
+                        },
+                        "description": "Returns all authors sorted alphabetically by name.\n\n**Response:** `{ success, authors: [{ id, name, bio }] }`"
+                    }
+                },
+                {
+                    "name": "🏆 Top 10 Authors",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/authors/top",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "authors", "top"]
+                        },
+                        "description": "Returns the top 10 authors ranked by number of books in the catalog.\n\n**Response:** `{ success, authors: [{ id, name, bio, bookCount }] }`"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🏢 Publishers",
+            "item": [
+                {
+                    "name": "Get All Publishers",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/publishers",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "publishers"]
+                        },
+                        "description": "Returns all publishers sorted alphabetically by name.\n\n**Response:** `{ success, publishers: [{ id, name, details }] }`"
+                    }
+                },
+                {
+                    "name": "🏆 Top 10 Publishers",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/publishers/top",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "publishers", "top"]
+                        },
+                        "description": "Returns the top 10 publishers ranked by number of books in the catalog.\n\n**Response:** `{ success, publishers: [{ id, name, details, bookCount }] }`"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🛒 Cart",
+            "item": [
+                {
+                    "name": "Get Cart",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-session-id",
+                                "value": "guest-session-abc123",
+                                "type": "text",
+                                "description": "For guests. Use Bearer token for auth users instead."
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "cart"]
+                        },
+                        "description": "Fetches the active cart. Works for both guests (x-session-id header) and authenticated users (Bearer token).\n\n**Response:** `{ success, cart: { id, cartItems: [{ id, quantity, book }] } }`"
+                    }
+                },
                 {
                     "name": "Add to Cart",
                     "request": {
@@ -169,283 +466,717 @@
                         "header": [
                             {
                                 "key": "x-session-id",
-                                "value": "guest-12345",
-                                "type": "text"
+                                "value": "guest-session-abc123",
+                                "type": "text",
+                                "description": "For guests. Remove if using Bearer auth."
                             }
                         ],
                         "body": {
                             "mode": "raw",
                             "raw": "{\n    \"bookId\": \"<book_uuid>\",\n    \"quantity\": 1\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/cart/add",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "cart",
-                                "add"
-                            ]
-                        }
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "cart", "add"]
+                        },
+                        "description": "Adds a book to cart or increments quantity if already present (upsert).\n\n**Response:** `{ success, cartItem: { id, quantity, bookId } }`"
+                    }
+                },
+                {
+                    "name": "Update Cart Item Quantity",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "x-session-id",
+                                "value": "guest-session-abc123",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"quantity\": 3\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/update/{{cartItemId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "cart", "update", "{{cartItemId}}"]
+                        },
+                        "description": "Updates the quantity of a specific cart item.\n\n**Response:** `{ success, cartItem: { id, quantity } }`"
+                    }
+                },
+                {
+                    "name": "Remove Cart Item",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "x-session-id",
+                                "value": "guest-session-abc123",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/remove/{{cartItemId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "cart", "remove", "{{cartItemId}}"]
+                        },
+                        "description": "Removes a single item from the cart.\n\n**Response:** `{ success, message }`"
                     }
                 }
             ]
         },
         {
-            "name": "Orders",
+            "name": "📦 Orders",
             "item": [
                 {
-                    "name": "Checkout Transaction",
+                    "name": "Checkout",
                     "request": {
                         "auth": {
                             "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
                         },
                         "method": "POST",
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"addressId\": \"<address_uuid>\",\n    \"paymentMethod\": \"COD\",\n    \"pointsUsed\": 0\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "raw": "{\n    \"addressId\": \"<address_uuid>\",\n    \"paymentMethod\": \"COD\",\n    \"pointsUsed\": 0,\n    \"couponCode\": \"NEWUSER10\"\n}",
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/orders/checkout",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "orders",
-                                "checkout"
-                            ]
-                        }
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "orders", "checkout"]
+                        },
+                        "description": "Atomic ACID checkout — locks stock, applies coupon/points, and places the order in a single transaction. `paymentMethod` options: `COD | BKASH | NAGAD | CARD`.\n\n**Response:** `{ success, order: { id, orderNumber, grandTotal, orderStatus } }`"
+                    }
+                },
+                {
+                    "name": "Get My Orders",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/orders/my-orders",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "orders", "my-orders"]
+                        },
+                        "description": "Returns the user's full purchase history.\n\n**Response:** `{ success, orders: [{ id, orderNumber, grandTotal, orderStatus, createdAt }] }`"
+                    }
+                },
+                {
+                    "name": "Get Order by ID",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "orders", "{{orderId}}"]
+                        },
+                        "description": "Returns a single order's full details including line items and a text invoice.\n\n**Response:** `{ success, order: { ...allFields, orderItems, address }, invoice: '...' }`"
                     }
                 }
             ]
         },
         {
-            "name": "Admin",
+            "name": "⭐ Book Reviews",
             "item": [
                 {
-                    "name": "Create Book",
+                    "name": "Get Approved Reviews for a Book",
                     "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"title\": \"Advanced Prisma Guide\",\n    \"categoryId\": \"<uuid>\",\n    \"authorId\": \"<uuid>\",\n    \"publisherId\": \"<uuid>\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"price\": 500,\n    \"stock\": 100,\n    \"imageUrls\": [\n        \"https://i.ibb.co/example/book-cover.jpg\"\n    ]\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/books",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "books"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Create Combo",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"title\": \"Developer Starter Pack\",\n    \"price\": 1200,\n    \"bookIds\": [\n        \"<uuid1>\",\n        \"<uuid2>\"\n    ]\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
-                        },
-                        "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/combos",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "combos"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Get Dashboard Analytics",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
-                        },
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/analytics/dashboard",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "analytics",
-                                "dashboard"
-                            ]
-                        }
+                            "raw": "{{baseUrl}}/api/v1/reviews/books/{{bookId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "reviews", "books", "{{bookId}}"]
+                        },
+                        "description": "Returns all approved reviews for a specific book, best rated first.\n\n**Response:** `{ success, reviews: [{ id, rating, reviewText, user: { name } }] }`"
                     }
                 },
                 {
-                    "name": "Create Coupon",
+                    "name": "Submit Book Review (Verified Purchase)",
                     "request": {
                         "auth": {
                             "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
                         },
                         "method": "POST",
                         "header": [],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"code\": \"NEWUSER10\",\n    \"type\": \"PERCENTAGE\",\n    \"value\": 10,\n    \"minSpend\": 500,\n    \"validUntil\": \"2026-12-31T23:59:59.000Z\"\n}",
-                            "options": {
-                                "raw": {
-                                    "language": "json"
-                                }
-                            }
+                            "raw": "{\n    \"bookId\": \"<book_uuid>\",\n    \"rating\": 5,\n    \"reviewText\": \"Absolutely loved this book! Highly recommended.\"\n}",
+                            "options": { "raw": { "language": "json" } }
                         },
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/coupons",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "coupons"
-                            ]
-                        }
-                    }
-                },
-                {
-                    "name": "Get All Coupons",
-                    "request": {
-                        "auth": {
-                            "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
+                            "raw": "{{baseUrl}}/api/v1/reviews",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "reviews"]
                         },
+                        "description": "Submits a book review. User must have a DELIVERED order containing this book. Review is pending admin approval.\n\n**Response:** `{ success, message, review: { id, rating, reviewText, isApproved } }`"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "🌟 Site Reviews (Testimonials)",
+            "item": [
+                {
+                    "name": "Get Approved Site Reviews",
+                    "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/coupons",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "coupons"
-                            ]
-                        }
+                            "raw": "{{baseUrl}}/api/v1/site-reviews",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "site-reviews"]
+                        },
+                        "description": "Returns all publicly approved site testimonials, newest first. Use on homepage.\n\n**Response:** `{ success, reviews: [{ id, rating, reviewText, createdAt, user: { name } }] }`"
                     }
                 },
                 {
-                    "name": "Delete Coupon",
+                    "name": "Submit Site Review",
                     "request": {
                         "auth": {
                             "type": "bearer",
-                            "bearer": [
-                                {
-                                    "key": "token",
-                                    "value": "{{jwt_token}}",
-                                    "type": "string"
-                                }
-                            ]
+                            "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
                         },
-                        "method": "DELETE",
+                        "method": "POST",
                         "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"rating\": 5,\n    \"reviewText\": \"Pathdigonto has the best book collection I've ever seen!\"\n}",
+                            "options": { "raw": { "language": "json" } }
+                        },
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/admin/coupons/{{couponId}}",
-                            "host": [
-                                "{{baseUrl}}"
-                            ],
-                            "path": [
-                                "api",
-                                "v1",
-                                "admin",
-                                "coupons",
-                                "{{couponId}}"
-                            ]
-                        }
+                            "raw": "{{baseUrl}}/api/v1/site-reviews",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "site-reviews"]
+                        },
+                        "description": "Any authenticated user can submit one site review. Pending admin approval. `rating` is 1–5 (required). `reviewText` min 10 chars.\n\n**Response:** `{ success, message, review: { id, rating, reviewText, isApproved } }`"
                     }
+                }
+            ]
+        },
+        {
+            "name": "🔧 Admin",
+            "item": [
+                {
+                    "name": "📊 Analytics",
+                    "item": [
+                        {
+                            "name": "Get Dashboard Stats",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/analytics/dashboard",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "analytics", "dashboard"]
+                                },
+                                "description": "Returns optimised DB aggregate stats.\n\n**Response:** `{ todaysSales, monthlySales, totalRevenue, abandonedCarts, activeOrders, uniqueVisitors, conversionRate }`"
+                            }
+                        },
+                        {
+                            "name": "Get Top Selling Books (Admin)",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/analytics/top-selling-books",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "analytics", "top-selling-books"]
+                                },
+                                "description": "Admin version of best sellers with full book data.\n\n**Response:** `{ success, books: [{ id, title, price, imageUrls, totalSold }] }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "📖 Books",
+                    "item": [
+                        {
+                            "name": "Create Book",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Advanced Prisma Guide\",\n    \"categoryId\": \"<uuid>\",\n    \"authorId\": \"<uuid>\",\n    \"publisherId\": \"<uuid>\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"price\": 500,\n    \"stock\": 100,\n    \"discountPercent\": 10,\n    \"description\": \"An in-depth guide to Prisma ORM.\",\n    \"pages\": 320,\n    \"language\": \"English\",\n    \"imageUrls\": [\"https://i.ibb.co/example/book-cover.jpg\"]\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/books",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "books"]
+                                },
+                                "description": "Adds a new book to inventory.\n\n**Response:** `{ success, book: { id, title, price, stock, createdAt } }`"
+                            }
+                        },
+                        {
+                            "name": "Update Book",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"price\": 450,\n    \"stock\": 75,\n    \"discountPercent\": 15\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/books/{{bookId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "books", "{{bookId}}"]
+                                },
+                                "description": "Updates any fields on an existing book (partial update supported).\n\n**Response:** `{ success, book: { ...updatedFields } }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🗂️ Categories",
+                    "item": [
+                        {
+                            "name": "Create Category",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Science Fiction\",\n    \"slug\": \"science-fiction\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/categories",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "categories"]
+                                },
+                                "description": "Creates a new book category.\n\n**Response:** `{ success, category: { id, name, slug } }`"
+                            }
+                        },
+                        {
+                            "name": "Update Category",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Sci-Fi\",\n    \"slug\": \"sci-fi\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/categories/{{categoryId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "categories", "{{categoryId}}"]
+                                },
+                                "description": "Updates an existing category.\n\n**Response:** `{ success, category: { id, name, slug } }`"
+                            }
+                        },
+                        {
+                            "name": "Delete Category",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/categories/{{categoryId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "categories", "{{categoryId}}"]
+                                },
+                                "description": "Deletes a category (will fail if books are linked).\n\n**Response:** `{ success, message }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "✍️ Authors",
+                    "item": [
+                        {
+                            "name": "Create Author",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Humayun Ahmed\",\n    \"bio\": \"One of the most popular Bangladeshi fiction writers.\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/authors",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "authors"]
+                                },
+                                "description": "Creates a new author.\n\n**Response:** `{ success, author: { id, name, bio } }`"
+                            }
+                        },
+                        {
+                            "name": "Update Author",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Humayun Ahmed\",\n    \"bio\": \"Updated biography text.\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/authors/{{authorId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "authors", "{{authorId}}"]
+                                },
+                                "description": "Updates an existing author's details.\n\n**Response:** `{ success, author: { id, name, bio } }`"
+                            }
+                        },
+                        {
+                            "name": "Delete Author",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/authors/{{authorId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "authors", "{{authorId}}"]
+                                },
+                                "description": "Deletes an author (will fail if books are linked).\n\n**Response:** `{ success, message }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🏢 Publishers",
+                    "item": [
+                        {
+                            "name": "Create Publisher",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Anyaprakash\",\n    \"details\": \"Leading Bangladeshi publisher.\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/publishers",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "publishers"]
+                                },
+                                "description": "Creates a new publisher.\n\n**Response:** `{ success, publisher: { id, name, details } }`"
+                            }
+                        },
+                        {
+                            "name": "Update Publisher",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Anyaprakash\",\n    \"details\": \"Updated publisher details.\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/publishers/{{publisherId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "publishers", "{{publisherId}}"]
+                                },
+                                "description": "Updates publisher info.\n\n**Response:** `{ success, publisher: { id, name, details } }`"
+                            }
+                        },
+                        {
+                            "name": "Delete Publisher",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/publishers/{{publisherId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "publishers", "{{publisherId}}"]
+                                },
+                                "description": "Deletes a publisher (will fail if books are linked).\n\n**Response:** `{ success, message }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🎁 Combos",
+                    "item": [
+                        {
+                            "name": "Create Combo",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"title\": \"Developer Starter Pack\",\n    \"price\": 1200,\n    \"imageUrls\": [\"https://i.ibb.co/example/combo.jpg\"],\n    \"bookIds\": [\"<uuid1>\", \"<uuid2>\"]\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/combos",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "combos"]
+                                },
+                                "description": "Creates a combo bundle with multiple books.\n\n**Response:** `{ success, combo: { id, title, price, comboItems } }`"
+                            }
+                        },
+                        {
+                            "name": "Delete Combo",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/combos/{{comboId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "combos", "{{comboId}}"]
+                                },
+                                "description": "Deletes a combo offer.\n\n**Response:** `{ success, message }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "🎟️ Coupons",
+                    "item": [
+                        {
+                            "name": "Create Coupon",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "POST",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"code\": \"NEWUSER10\",\n    \"type\": \"PERCENTAGE\",\n    \"value\": 10,\n    \"minSpend\": 500,\n    \"validUntil\": \"2026-12-31T23:59:59.000Z\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/coupons",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "coupons"]
+                                },
+                                "description": "`type` options: `PERCENTAGE | FIXED | FREE_DELIVERY`.\n\n**Response:** `{ success, coupon: { id, code, type, value, validUntil } }`"
+                            }
+                        },
+                        {
+                            "name": "Get All Coupons",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/coupons",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "coupons"]
+                                },
+                                "description": "Lists all created coupons.\n\n**Response:** `{ success, coupons: [...] }`"
+                            }
+                        },
+                        {
+                            "name": "Delete Coupon",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/coupons/{{couponId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "coupons", "{{couponId}}"]
+                                },
+                                "description": "Deletes a coupon by ID.\n\n**Response:** `{ success, message }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "📦 Orders (Admin)",
+                    "item": [
+                        {
+                            "name": "Get All Orders",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/orders?page=1&limit=50",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "orders"],
+                                    "query": [
+                                        { "key": "page", "value": "1" },
+                                        { "key": "limit", "value": "50" }
+                                    ]
+                                },
+                                "description": "Paginated list of all orders across all users.\n\n**Response:** `{ success, orders: [...], meta: { total, page } }`"
+                            }
+                        },
+                        {
+                            "name": "Update Order Status",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"status\": \"SHIPPED\",\n    \"trackingLink\": \"https://tracking.example.com/XYZ123\"\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/orders/{{orderId}}/status",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "orders", "{{orderId}}", "status"]
+                                },
+                                "description": "`status` options: `NEW | CONFIRMED | PACKED | SHIPPED | DELIVERED | CANCELLED | RETURNED`.\n\n**Response:** `{ success, order: { id, orderStatus, trackingLink } }`"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "⭐ Reviews (Admin Moderation)",
+                    "item": [
+                        {
+                            "name": "Approve / Reject Book Review",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"isApproved\": true\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/reviews/{{reviewId}}/status",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "reviews", "{{reviewId}}", "status"]
+                                },
+                                "description": "Approves or rejects a pending book review. Set `isApproved: false` to reject.\n\n**Response:** `{ success, review: { id, isApproved } }`"
+                            }
+                        },
+                        {
+                            "name": "Get Pending Site Reviews",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/site-reviews/pending",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "site-reviews", "pending"]
+                                },
+                                "description": "Returns all unapproved site testimonials awaiting moderation.\n\n**Response:** `{ success, reviews: [{ id, rating, reviewText, createdAt, user: { name, email } }] }`"
+                            }
+                        },
+                        {
+                            "name": "Approve / Reject Site Review",
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }]
+                                },
+                                "method": "PUT",
+                                "header": [],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"isApproved\": true\n}",
+                                    "options": { "raw": { "language": "json" } }
+                                },
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/admin/site-reviews/{{siteReviewId}}/status",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "admin", "site-reviews", "{{siteReviewId}}", "status"]
+                                },
+                                "description": "Approves or rejects a pending site review.\n\n**Response:** `{ success, review: { id, isApproved } }`"
+                            }
+                        }
+                    ]
                 }
             ]
         }
@@ -458,6 +1189,62 @@
         },
         {
             "key": "jwt_token",
+            "value": "",
+            "type": "string",
+            "description": "Auto-set by Login and Verify Registration test scripts"
+        },
+        {
+            "key": "bookId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "orderId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "addressId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cartItemId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "reviewId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "siteReviewId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "categoryId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "authorId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "publisherId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "comboId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "couponId",
             "value": "",
             "type": "string"
         }
