@@ -2,7 +2,7 @@
   "name": "pathdigonto_book_hub_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "build": "prisma generate",
     "start": "node src/server.js",
