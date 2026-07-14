@@ -8,5 +8,13 @@ const getDashboard = async (req, res, next) => {
         next(error);
     }
 };
+const getTopSellingBooks = async (req, res, next) => {
+    try {
+        const topBooks = await analyticsService.getTopSellingBooks();
+        res.status(200).json({ success: true, topBooks });
+    } catch (error) {
+        next(error);
+    }
+};
 
-module.exports = { getDashboard };
+module.exports = { getDashboard, getTopSellingBooks };

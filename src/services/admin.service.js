@@ -40,10 +40,18 @@ const createCombo = async (data) => {
     });
 };
 
+const deleteCombo = async (id) => prisma.combo.delete({ where: { id } });
+
+// Coupons
+const createCoupon = async (data) => prisma.coupon.create({ data });
+const getCoupons = async () => prisma.coupon.findMany();
+const deleteCoupon = async (id) => prisma.coupon.delete({ where: { id } });
+
 module.exports = {
     createBook, updateBook,
     createCategory, updateCategory, deleteCategory,
     createAuthor, updateAuthor, deleteAuthor,
     createPublisher, updatePublisher, deletePublisher,
-    createCombo
+    createCombo, deleteCombo,
+    createCoupon, getCoupons, deleteCoupon
 };

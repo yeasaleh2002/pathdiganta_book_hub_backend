@@ -106,10 +106,48 @@ const createCombo = async (req, res, next) => {
     }
 };
 
+const deleteCombo = async (req, res, next) => {
+    try {
+        await adminService.deleteCombo(req.params.id);
+        res.status(200).json({ success: true, message: 'Combo deleted' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Coupons
+const createCoupon = async (req, res, next) => {
+    try {
+        const coupon = await adminService.createCoupon(req.body);
+        res.status(201).json({ success: true, coupon });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getCoupons = async (req, res, next) => {
+    try {
+        const coupons = await adminService.getCoupons();
+        res.status(200).json({ success: true, coupons });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteCoupon = async (req, res, next) => {
+    try {
+        await adminService.deleteCoupon(req.params.id);
+        res.status(200).json({ success: true, message: 'Coupon deleted' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createBook, updateBook,
     createCategory, updateCategory, deleteCategory,
     createAuthor, updateAuthor, deleteAuthor,
     createPublisher, updatePublisher, deletePublisher,
-    createCombo
+    createCombo, deleteCombo,
+    createCoupon, getCoupons, deleteCoupon
 };

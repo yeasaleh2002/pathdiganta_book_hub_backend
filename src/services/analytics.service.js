@@ -29,12 +29,70 @@ const getDashboardStats = async () => {
         })
     ]);
 
+    // Active orders calculation
+    const activeOrders = await prisma.order.count({
+        where: {
+            orderStatus: {
+                notIn: ['DELIVERED', 'CANCELLED', 'RETURNED']
+            }
+        }
+    });
+
     return {
         todaysSales: todaysSales._sum.grandTotal || 0,
         monthlySales: monthlySales._sum.grandTotal || 0,
         totalRevenue: totalRevenue._sum.grandTotal || 0,
-        abandonedCarts
+        abandonedCarts,
+        uniqueVisitors: 12405, // Mocked as requested
+        conversionRate: 3.8,   // Mocked as requested
+        cartAbandonmentRate: 64.2, // Mocked as requested
+        activeOrders
     };
 };
 
-module.exports = { getDashboardStats };
+const getTopSellingBooks = async () => {
+    // Group by bookId and sum quantity from order items
+    const topItems = await prisma.orderItem.groupBy({
+        by: ['bookId'],
+        _sum: {
+            quantity: true
+        },
+        where: {
+            bookId: { not: null }
+        },
+        orderBy: {
+            _sum: {
+                quantity: 'desc'
+            }
+        },
+        take: 10
+    });
+
+    const bookIds = topItems.map(item => item.bookId);
+
+    // Fetch the actual book details
+    const books = await prisma.book.findMany({
+        where: {
+            id: { in: bookIds }
+        },
+        select: {
+            id: true,
+            title: true,
+            price: true,
+            imageUrls: true
+        }
+    });
+
+    // Map the quantities back and sort
+    const topBooks = books.map(book => {
+        const item = topItems.find(i => i.bookId === book.id);
+        return {
+            ...book,
+            totalSold: item._sum.quantity
+        };
+    }).sort((a, b) => b.totalSold - a.totalSold);
+
+    return topBooks;
+};
+
+module.exports = { getDashboardStats, getTopSellingBooks };

@@ -57,6 +57,16 @@ const comboSchema = z.object({
     }),
 });
 
+const couponSchema = z.object({
+    body: z.object({
+        code: z.string().min(2, 'Code is required'),
+        type: z.enum(['PERCENTAGE', 'FIXED', 'FREE_DELIVERY']),
+        value: z.number().min(0, 'Value must be positive'),
+        minSpend: z.number().min(0).optional(),
+        validUntil: z.string().datetime()
+    }),
+});
+
 module.exports = {
     bookSchema,
     updateBookSchema,
@@ -64,4 +74,5 @@ module.exports = {
     authorSchema,
     publisherSchema,
     comboSchema,
+    couponSchema,
 };

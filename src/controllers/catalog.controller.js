@@ -45,4 +45,22 @@ const getCombos = async (req, res, next) => {
     }
 };
 
-module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos };
+const getAuthors = async (req, res, next) => {
+    try {
+        const authors = await catalogService.getAuthors();
+        res.status(200).json({ success: true, authors });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getPublishers = async (req, res, next) => {
+    try {
+        const publishers = await catalogService.getPublishers();
+        res.status(200).json({ success: true, publishers });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos, getAuthors, getPublishers };

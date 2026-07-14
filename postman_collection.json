@@ -1,166 +1,465 @@
 {
-	"info": {
-		"name": "Pathdigonto Book Hub API",
-		"description": "Complete collection for Pathdigonto Backend Endpoints.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Auth",
-			"item": [
-				{
-					"name": "Register User",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": { "mode": "raw", "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}", "options": { "raw": { "language": "json" } } },
-						"url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] }
-					}
-				},
-				{
-					"name": "Verify Registration",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if(jsonData.token) {",
-									"    pm.environment.set(\"jwt_token\", jsonData.token);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": { "mode": "raw", "raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"123456\"\n}", "options": { "raw": { "language": "json" } } },
-						"url": { "raw": "{{baseUrl}}/api/v1/auth/verify-registration", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "verify-registration"] }
-					}
-				},
+    "info": {
+        "name": "Pathdigonto Book Hub API",
+        "description": "Complete collection for Pathdigonto Backend Endpoints.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
                 {
-					"name": "Login User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"var jsonData = pm.response.json();",
-									"if(jsonData.token) {",
-									"    pm.environment.set(\"jwt_token\", jsonData.token);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": { "mode": "raw", "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}", "options": { "raw": { "language": "json" } } },
-						"url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] }
-					}
-				}
-			]
-		},
-		{
-			"name": "Catalog",
-			"item": [
-				{
-					"name": "Get Books (Filtered)",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/v1/books?limit=10&page=1&sortBy=price_asc",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "v1", "books"],
-							"query": [
-								{ "key": "limit", "value": "10" },
-								{ "key": "page", "value": "1" },
-								{ "key": "sortBy", "value": "price_asc" }
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "Cart",
-			"item": [
-				{
-					"name": "Add to Cart",
-					"request": {
-						"method": "POST",
-						"header": [ { "key": "x-session-id", "value": "guest-12345", "type": "text" } ],
-						"body": { "mode": "raw", "raw": "{\n    \"bookId\": \"<book_uuid>\",\n    \"quantity\": 1\n}", "options": { "raw": { "language": "json" } } },
-						"url": { "raw": "{{baseUrl}}/api/v1/cart/add", "host": ["{{baseUrl}}"], "path": ["api", "v1", "cart", "add"] }
-					}
-				}
-			]
-		},
-		{
-			"name": "Orders",
-			"item": [
-				{
-					"name": "Checkout Transaction",
-					"request": {
-						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{jwt_token}}", "type": "string" } ] },
-						"method": "POST",
-						"header": [],
-						"body": { "mode": "raw", "raw": "{\n    \"addressId\": \"<address_uuid>\",\n    \"paymentMethod\": \"COD\",\n    \"pointsUsed\": 0\n}", "options": { "raw": { "language": "json" } } },
-						"url": { "raw": "{{baseUrl}}/api/v1/orders/checkout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "orders", "checkout"] }
-					}
-				}
-			]
-		},
-		{
-			"name": "Admin",
-			"item": [
-				{
-					"name": "Create Book",
-					"request": {
-						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{jwt_token}}", "type": "string" } ] },
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Advanced Prisma Guide\",\n    \"categoryId\": \"<uuid>\",\n    \"authorId\": \"<uuid>\",\n    \"publisherId\": \"<uuid>\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"price\": 500,\n    \"stock\": 100,\n    \"imageUrls\": [\n        \"https://i.ibb.co/example/book-cover.jpg\"\n    ]\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "{{baseUrl}}/api/v1/admin/books", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "books"] }
-					}
-				},
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    }
+                },
                 {
-					"name": "Create Combo",
-					"request": {
-						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{jwt_token}}", "type": "string" } ] },
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"title\": \"Developer Starter Pack\",\n    \"price\": 1200,\n    \"bookIds\": [\n        \"<uuid1>\",\n        \"<uuid2>\"\n    ]\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "{{baseUrl}}/api/v1/admin/combos", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "combos"] }
-					}
-				},
-				{
-					"name": "Get Dashboard Analytics",
-					"request": {
-						"auth": { "type": "bearer", "bearer": [ { "key": "token", "value": "{{jwt_token}}", "type": "string" } ] },
-						"method": "GET",
-						"header": [],
-						"url": { "raw": "{{baseUrl}}/api/v1/admin/analytics/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "admin", "analytics", "dashboard"] }
-					}
-				}
-			]
-		}
-	],
-	"variable": [
-		{ "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
-		{ "key": "jwt_token", "value": "", "type": "string" }
-	]
+                    "name": "Verify Registration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.token) {",
+                                    "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"test@example.com\",\n    \"otp\": \"123456\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/verify-registration",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "verify-registration"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Login User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if(jsonData.token) {",
+                                    "    pm.environment.set(\"jwt_token\", jsonData.token);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Catalog",
+            "item": [
+                {
+                    "name": "Get Books (Filtered)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/books?limit=10&page=1&sortBy=price_asc",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "books"
+                            ],
+                            "query": [
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "sortBy",
+                                    "value": "price_asc"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Cart",
+            "item": [
+                {
+                    "name": "Add to Cart",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-session-id",
+                                "value": "guest-12345",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"bookId\": \"<book_uuid>\",\n    \"quantity\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/cart/add",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "cart",
+                                "add"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Orders",
+            "item": [
+                {
+                    "name": "Checkout Transaction",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"addressId\": \"<address_uuid>\",\n    \"paymentMethod\": \"COD\",\n    \"pointsUsed\": 0\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/orders/checkout",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "checkout"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin",
+            "item": [
+                {
+                    "name": "Create Book",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Advanced Prisma Guide\",\n    \"categoryId\": \"<uuid>\",\n    \"authorId\": \"<uuid>\",\n    \"publisherId\": \"<uuid>\",\n    \"isbn\": \"978-3-16-148410-0\",\n    \"price\": 500,\n    \"stock\": 100,\n    \"imageUrls\": [\n        \"https://i.ibb.co/example/book-cover.jpg\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/books",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "books"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Combo",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Developer Starter Pack\",\n    \"price\": 1200,\n    \"bookIds\": [\n        \"<uuid1>\",\n        \"<uuid2>\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/combos",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "combos"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Dashboard Analytics",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/analytics/dashboard",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "analytics",
+                                "dashboard"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Coupon",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"code\": \"NEWUSER10\",\n    \"type\": \"PERCENTAGE\",\n    \"value\": 10,\n    \"minSpend\": 500,\n    \"validUntil\": \"2026-12-31T23:59:59.000Z\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/coupons",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "coupons"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Coupons",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/coupons",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "coupons"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Coupon",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{jwt_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/admin/coupons/{{couponId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "admin",
+                                "coupons",
+                                "{{couponId}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
 }

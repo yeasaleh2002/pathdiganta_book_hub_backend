@@ -6,7 +6,7 @@ const analyticsController = require('../controllers/analytics.controller');
 const reviewController = require('../controllers/review.controller');
 const validateRequest = require('../middlewares/validateRequest');
 const { isAuthenticated, isAdmin } = require('../middlewares/authMiddleware');
-const { bookSchema, updateBookSchema, categorySchema, authorSchema, publisherSchema, comboSchema } = require('../validations/admin.validation');
+const { bookSchema, updateBookSchema, categorySchema, authorSchema, publisherSchema, comboSchema, couponSchema } = require('../validations/admin.validation');
 const { updateOrderStatusSchema } = require('../validations/order.validation');
 const { updateReviewStatusSchema } = require('../validations/review.validation');
 
@@ -34,6 +34,12 @@ router.delete('/publishers/:id', adminController.deletePublisher);
 
 // Combos
 router.post('/combos', validateRequest(comboSchema), adminController.createCombo);
+router.delete('/combos/:id', adminController.deleteCombo);
+
+// Coupons
+router.post('/coupons', validateRequest(couponSchema), adminController.createCoupon);
+router.get('/coupons', adminController.getCoupons);
+router.delete('/coupons/:id', adminController.deleteCoupon);
 
 // Orders (Admin Management)
 router.get('/orders', adminOrderController.getAdminOrders);
@@ -41,6 +47,7 @@ router.put('/orders/:id/status', validateRequest(updateOrderStatusSchema), admin
 
 // Analytics
 router.get('/analytics/dashboard', analyticsController.getDashboard);
+router.get('/analytics/top-selling-books', analyticsController.getTopSellingBooks);
 
 // Reviews (Admin Moderation)
 router.put('/reviews/:id/status', validateRequest(updateReviewStatusSchema), reviewController.updateReviewStatus);

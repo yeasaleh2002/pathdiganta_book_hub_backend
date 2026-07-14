@@ -10,7 +10,7 @@ const getBooks = async (filters) => {
     if (authorId) where.authorId = authorId;
     if (publisherId) where.publisherId = publisherId;
 
-    let orderBy = { createdAt: 'desc' }; // Default newest
+    let orderBy = undefined;
     if (sortBy === 'price_asc') orderBy = { price: 'asc' };
     else if (sortBy === 'price_desc') orderBy = { price: 'desc' };
     else if (sortBy === 'title_asc') orderBy = { title: 'asc' };
@@ -107,4 +107,16 @@ const getCombos = async () => {
     });
 };
 
-module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos };
+const getAuthors = async () => {
+    return prisma.author.findMany({
+        orderBy: { name: 'asc' }
+    });
+};
+
+const getPublishers = async () => {
+    return prisma.publisher.findMany({
+        orderBy: { name: 'asc' }
+    });
+};
+
+module.exports = { getBooks, searchBooks, getBookById, getCategories, getCombos, getAuthors, getPublishers };

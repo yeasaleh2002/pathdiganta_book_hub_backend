@@ -9,6 +9,8 @@ router.get('/books/search', validateRequest(searchBooksQuerySchema), catalogCont
 router.get('/books/:id', catalogController.getBookById);
 
 router.get('/categories', catalogController.getCategories);
+router.get('/authors', catalogController.getAuthors);
+router.get('/publishers', catalogController.getPublishers);
 router.get('/combos', catalogController.getCombos);
 
 module.exports = router;
