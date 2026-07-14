@@ -28,6 +28,15 @@ const globalLimiter = rateLimit({
 });
 app.use('/api', globalLimiter);
 
+// Base route
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'Welcome to Pathdigonto Book Hub API',
+        version: '1.0.0'
+    });
+});
+
 app.use('/api/v1', routes);
 
 app.use(errorHandler);
