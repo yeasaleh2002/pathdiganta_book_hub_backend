@@ -70,10 +70,12 @@ model User {
 model Address {
   id             String  @id @default(uuid())
   userId         String
-  type           String?
-  street         String
-  city           String
-  phoneAlternate String?
+  title          String?
+  phone          String  @default("00000000000")
+  addressLine    String  @default("N/A")
+  isInsideDhaka  Boolean @default(true)
+  district       String?
+  thana          String?
   isDefault      Boolean @default(false)
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)

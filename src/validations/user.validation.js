@@ -9,21 +9,41 @@ const updateUserSchema = z.object({
 
 const createAddressSchema = z.object({
     body: z.object({
-        type: z.string().optional(),
-        street: z.string().min(3, 'Street is required'),
-        city: z.string().min(2, 'City is required'),
-        phoneAlternate: z.string().optional(),
+        title: z.string().optional(),
+        phone: z.string().min(10, 'Phone number is required'),
+        addressLine: z.string().min(3, 'Address line is required'),
+        isInsideDhaka: z.boolean().default(true),
+        district: z.string().optional(),
+        thana: z.string().optional(),
         isDefault: z.boolean().optional(),
+    }).refine((data) => {
+        if (!data.isInsideDhaka) {
+            return !!data.district && !!data.thana;
+        }
+        return true;
+    }, {
+        message: "District and Thana are required when outside Dhaka",
+        path: ["district"], // Attach error to district
     }),
 });
 
 const updateAddressSchema = z.object({
     body: z.object({
-        type: z.string().optional(),
-        street: z.string().min(3).optional(),
-        city: z.string().min(2).optional(),
-        phoneAlternate: z.string().optional(),
+        title: z.string().optional(),
+        phone: z.string().min(10).optional(),
+        addressLine: z.string().min(3).optional(),
+        isInsideDhaka: z.boolean().optional(),
+        district: z.string().optional(),
+        thana: z.string().optional(),
         isDefault: z.boolean().optional(),
+    }).refine((data) => {
+        if (data.isInsideDhaka === false) {
+            return !!data.district && !!data.thana;
+        }
+        return true;
+    }, {
+        message: "District and Thana are required when outside Dhaka",
+        path: ["district"],
     }),
 });
 

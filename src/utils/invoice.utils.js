@@ -14,7 +14,8 @@ Date: ${order.createdAt.toISOString().split('T')[0]}
 Customer: ${order.user.name} (${order.user.email})
 
 Shipping Address:
-${order.address.street}, ${order.address.city}
+${order.address.title ? order.address.title + ' - ' : ''}${order.address.phone}
+${order.address.addressLine}${!order.address.isInsideDhaka && order.address.district ? `, ${order.address.thana}, ${order.address.district}` : ''}
 
 Items:
 ${itemsStr}
