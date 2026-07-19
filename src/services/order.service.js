@@ -6,7 +6,7 @@ const generateOrderNumber = () => {
 };
 
 const checkout = async (userId, data) => {
-    const { addressId, couponCode, pointsUsed = 0, paymentMethod } = data;
+    const { shippingAddress, couponCode, pointsUsed = 0, paymentMethod, items } = data;
 
     // Prisma Interactive Transaction logic to ensure race condition immunity.
     return await prisma.$transaction(async (tx) => {
@@ -15,32 +15,39 @@ const checkout = async (userId, data) => {
             throw { statusCode: 400, message: 'Insufficient loyalty points' };
         }
 
-        const cart = await tx.cart.findFirst({
-            where: { userId, status: 'ACTIVE' },
-            include: { cartItems: { include: { book: true } } }
-        });
-
-        if (!cart || cart.cartItems.length === 0) {
-            throw { statusCode: 400, message: 'Cart is empty or invalid' };
+        if (!items || items.length === 0) {
+            throw { statusCode: 400, message: 'Order items are empty' };
         }
 
         let subtotal = 0;
-        for (const item of cart.cartItems) {
-            if (!item.book.isActive) {
-                throw { statusCode: 400, message: `Book ${item.book.title} is currently unavailable` };
+        const processedItems = [];
+
+        for (const item of items) {
+            const bookRecord = await tx.book.findUnique({ where: { id: item.book } });
+            if (!bookRecord) {
+                throw { statusCode: 404, message: `Book not found` };
             }
-            if (item.book.stock < item.quantity) {
-                throw { statusCode: 400, message: `Insufficient stock for ${item.book.title}` };
+            if (!bookRecord.isActive) {
+                throw { statusCode: 400, message: `Book ${bookRecord.title} is currently unavailable` };
+            }
+            if (bookRecord.stock < item.quantity) {
+                throw { statusCode: 400, message: `Insufficient stock for ${bookRecord.title}` };
             }
 
             // Deduct Stock atomically
             await tx.book.update({
-                where: { id: item.book.id },
+                where: { id: bookRecord.id },
                 data: { stock: { decrement: item.quantity } }
             });
 
-            const finalPrice = item.book.price * (1 - (item.book.discountPercent / 100));
+            const finalPrice = Number(bookRecord.price) * (1 - (bookRecord.discountPercent / 100));
             subtotal += finalPrice * item.quantity;
+            
+            processedItems.push({
+                bookId: bookRecord.id,
+                quantity: item.quantity,
+                unitPrice: finalPrice
+            });
         }
 
         let coupon = null;
@@ -67,7 +74,7 @@ const checkout = async (userId, data) => {
             data: {
                 orderNumber: generateOrderNumber(),
                 userId,
-                addressId,
+                addressId: shippingAddress,
                 subtotal,
                 pointsUsed,
                 couponId: coupon ? coupon.id : null,
@@ -76,11 +83,7 @@ const checkout = async (userId, data) => {
                 paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PENDING_GATEWAY',
                 orderStatus: 'NEW',
                 orderItems: {
-                    create: cart.cartItems.map(item => ({
-                        bookId: item.bookId,
-                        quantity: item.quantity,
-                        unitPrice: item.book.price * (1 - (item.book.discountPercent / 100)),
-                    }))
+                    create: processedItems
                 }
             },
             include: { orderItems: true }
@@ -92,11 +95,6 @@ const checkout = async (userId, data) => {
                 data: { loyaltyPoints: { decrement: pointsUsed } }
             });
         }
-
-        await tx.cart.update({
-            where: { id: cart.id },
-            data: { status: 'CONVERTED' }
-        });
 
         return order;
     });
