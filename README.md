@@ -196,7 +196,7 @@ npm start       # Production
 | `GET` | `/books` | Public | Paginated book list with filters |
 | `GET` | `/books/new-arrivals` | Public | **Latest 10 books** by date added |
 | `GET` | `/books/best-sellers` | Public | **Top 10 books** by units sold |
-| `GET` | `/books/search` | Public | Autocomplete search by title |
+| `GET` | `/books/search` | Public | Paginated search by title with filters |
 | `GET` | `/books/:id` | Public | Full book details |
 | `GET` | `/categories` | Public | All categories |
 | `GET` | `/categories/:slug/books` | Public | Books filtered by category slug |
@@ -238,12 +238,22 @@ npm start       # Production
 }
 ```
 
-#### `GET /books/search?q=Harry`
+#### `GET /books/search`
 ```json
+// Query Parameters
+?q=Harry         (optional keyword)
+?page=1          (default: 1)
+?limit=20        (default: 20, max: 100)
+?sortBy=newest   (options: price_asc | price_desc | title_asc | newest)
+?categoryId=uuid (optional UUID filter)
+?authorId=uuid   (optional UUID filter)
+?publisherId=uuid (optional UUID filter)
+
 // Response 200
 {
   "success": true,
-  "books": [ { "id": "uuid", "title": "Harry Potter", "price": 600, "imageUrls": ["..."], "author": { "name": "J.K. Rowling" } } ]
+  "books": [ { "id": "uuid", "title": "Harry Potter", "price": 600, "imageUrls": ["..."], "author": { "name": "J.K. Rowling" }, "category": { "name": "Fiction", "slug": "fiction" }, "publisher": { "name": "Bloomsbury" } } ],
+  "meta": { "total": 15, "page": 1, "limit": 20, "totalPages": 1 }
 }
 ```
 

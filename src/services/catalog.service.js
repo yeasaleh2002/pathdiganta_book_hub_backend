@@ -43,24 +43,54 @@ const getBooks = async (filters) => {
     };
 };
 
-const searchBooks = async (q) => {
-    return prisma.book.findMany({
-        where: {
-            isActive: true,
-            title: {
-                contains: q,
-                mode: 'insensitive', // Case-insensitive autocomplete
-            }
-        },
-        select: {
-            id: true,
-            title: true,
-            price: true,
-            imageUrls: true,
-            author: { select: { name: true } }
-        },
-        take: 10,
-    });
+const searchBooks = async (filters) => {
+    const { q, page = 1, limit = 20, categoryId, authorId, publisherId, sortBy } = filters;
+    const skip = (Number(page) - 1) * Number(limit);
+    const take = Math.min(Number(limit), 100);
+
+    const where = { 
+        isActive: true,
+    };
+    if (q) {
+        where.title = {
+            contains: q,
+            mode: 'insensitive',
+        };
+    }
+    if (categoryId) where.categoryId = categoryId;
+    if (authorId) where.authorId = authorId;
+    if (publisherId) where.publisherId = publisherId;
+
+    let orderBy = undefined;
+    if (sortBy === 'price_asc') orderBy = { price: 'asc' };
+    else if (sortBy === 'price_desc') orderBy = { price: 'desc' };
+    else if (sortBy === 'title_asc') orderBy = { title: 'asc' };
+    else if (sortBy === 'newest') orderBy = { createdAt: 'desc' };
+
+    const [books, total] = await Promise.all([
+        prisma.book.findMany({
+            where,
+            include: {
+                category: { select: { id: true, name: true, slug: true } },
+                author: { select: { id: true, name: true } },
+                publisher: { select: { id: true, name: true } },
+            },
+            skip,
+            take,
+            orderBy,
+        }),
+        prisma.book.count({ where }),
+    ]);
+
+    return {
+        books,
+        meta: {
+            total,
+            page: Number(page),
+            limit: take,
+            totalPages: Math.ceil(total / take),
+        }
+    };
 };
 
 const getBookById = async (id) => {

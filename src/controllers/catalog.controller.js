@@ -11,8 +11,8 @@ const getBooks = async (req, res, next) => {
 
 const searchBooks = async (req, res, next) => {
     try {
-        const books = await catalogService.searchBooks(req.query.q);
-        res.status(200).json({ success: true, books });
+        const result = await catalogService.searchBooks(req.query);
+        res.status(200).json({ success: true, ...result });
     } catch (error) {
         next(error);
     }
