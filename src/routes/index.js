@@ -8,6 +8,7 @@ const adminRoutes = require('./admin.routes');
 const orderRoutes = require('./order.routes');
 const reviewRoutes = require('./review.routes');
 const siteReviewRoutes = require('./siteReview.routes');
+const couponRoutes = require('./coupon.routes');
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use('/orders', orderRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/site-reviews', siteReviewRoutes);
 router.use('/admin', adminRoutes);
+router.use('/coupons', couponRoutes);
 
 module.exports = router;
