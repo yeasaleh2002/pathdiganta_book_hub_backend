@@ -307,3 +307,15 @@ model OtpCode {
 
   @@index([email])
 }
+
+model AdminNotification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  link      String?  
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
+}

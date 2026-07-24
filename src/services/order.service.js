@@ -96,6 +96,14 @@ const checkout = async (userId, data) => {
             });
         }
 
+        await tx.adminNotification.create({
+            data: {
+                title: 'New Order Placed',
+                message: `${user.name} has placed a new order (${order.orderNumber}) for ৳${grandTotal}.`,
+                link: `/admin/orders`, // The frontend admin orders page
+            }
+        });
+
         return order;
     });
 };

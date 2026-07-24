@@ -143,11 +143,41 @@ const deleteCoupon = async (req, res, next) => {
     }
 };
 
+// Notifications
+const getAdminNotifications = async (req, res, next) => {
+    try {
+        const limit = req.query.limit || 50;
+        const notifications = await adminService.getAdminNotifications(limit);
+        res.status(200).json({ success: true, notifications });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const markNotificationAsRead = async (req, res, next) => {
+    try {
+        const notification = await adminService.markNotificationAsRead(req.params.id);
+        res.status(200).json({ success: true, notification });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const markAllNotificationsAsRead = async (req, res, next) => {
+    try {
+        await adminService.markAllNotificationsAsRead();
+        res.status(200).json({ success: true, message: 'All notifications marked as read' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createBook, updateBook,
     createCategory, updateCategory, deleteCategory,
     createAuthor, updateAuthor, deleteAuthor,
     createPublisher, updatePublisher, deletePublisher,
     createCombo, deleteCombo,
-    createCoupon, getCoupons, deleteCoupon
+    createCoupon, getCoupons, deleteCoupon,
+    getAdminNotifications, markNotificationAsRead, markAllNotificationsAsRead
 };

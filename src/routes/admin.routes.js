@@ -58,4 +58,9 @@ router.put('/reviews/:id/status', validateRequest(updateReviewStatusSchema), rev
 router.get('/site-reviews/pending', siteReviewController.getPendingSiteReviews);
 router.put('/site-reviews/:id/status', validateRequest(updateSiteReviewStatusSchema), siteReviewController.updateSiteReviewStatus);
 
+// Notifications
+router.get('/notifications', adminController.getAdminNotifications);
+router.put('/notifications/mark-all-read', adminController.markAllNotificationsAsRead);
+router.put('/notifications/:id/read', adminController.markNotificationAsRead);
+
 module.exports = router;

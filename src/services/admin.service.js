@@ -47,11 +47,34 @@ const createCoupon = async (data) => prisma.coupon.create({ data });
 const getCoupons = async () => prisma.coupon.findMany();
 const deleteCoupon = async (id) => prisma.coupon.delete({ where: { id } });
 
+// Notifications
+const getAdminNotifications = async (limit = 50) => {
+    return prisma.adminNotification.findMany({
+        take: Number(limit),
+        orderBy: { createdAt: 'desc' }
+    });
+};
+
+const markNotificationAsRead = async (id) => {
+    return prisma.adminNotification.update({
+        where: { id },
+        data: { isRead: true }
+    });
+};
+
+const markAllNotificationsAsRead = async () => {
+    return prisma.adminNotification.updateMany({
+        where: { isRead: false },
+        data: { isRead: true }
+    });
+};
+
 module.exports = {
     createBook, updateBook,
     createCategory, updateCategory, deleteCategory,
     createAuthor, updateAuthor, deleteAuthor,
     createPublisher, updatePublisher, deletePublisher,
     createCombo, deleteCombo,
-    createCoupon, getCoupons, deleteCoupon
+    createCoupon, getCoupons, deleteCoupon,
+    getAdminNotifications, markNotificationAsRead, markAllNotificationsAsRead
 };
