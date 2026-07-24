@@ -13,16 +13,29 @@ const createSiteReview = async (userId, data) => {
         throw { statusCode: 400, message: 'You have already submitted a site review. Thank you for your feedback!' };
     }
 
-    return prisma.siteReview.create({
-        data: {
-            userId,
-            rating,
-            reviewText,
-            isApproved: false, // Pending admin moderation
-        },
-        include: {
-            user: { select: { name: true } },
-        },
+    let pointsAwarded = 500;
+    if (rating === 5) pointsAwarded = 1500;
+    else if (rating === 4) pointsAwarded = 1000;
+
+    return prisma.$transaction(async (tx) => {
+        const review = await tx.siteReview.create({
+            data: {
+                userId,
+                rating,
+                reviewText,
+                isApproved: false, // Pending admin moderation
+            },
+            include: {
+                user: { select: { name: true } },
+            },
+        });
+
+        await tx.user.update({
+            where: { id: userId },
+            data: { loyaltyPoints: { increment: pointsAwarded } }
+        });
+
+        return review;
     });
 };
 
