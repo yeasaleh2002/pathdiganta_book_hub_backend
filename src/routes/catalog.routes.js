@@ -28,4 +28,7 @@ router.get('/categories/:slug/books', catalogController.getBooksByCategory);
 // --- Combos ---
 router.get('/combos', catalogController.getCombos);
 
+// --- Coupons ---
+router.get('/coupons/latest', catalogController.getLatestActiveCoupon);
+
 module.exports = router;

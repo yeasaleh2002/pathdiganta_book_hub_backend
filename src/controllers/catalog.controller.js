@@ -108,6 +108,18 @@ const getBooksByCategory = async (req, res, next) => {
     }
 };
 
+const getLatestActiveCoupon = async (req, res, next) => {
+    try {
+        const coupon = await catalogService.getLatestActiveCoupon();
+        if (!coupon) {
+            return res.status(200).json({ success: true, message: 'No active coupon' });
+        }
+        res.status(200).json({ success: true, coupon });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     getBooks,
     searchBooks,
@@ -121,4 +133,5 @@ module.exports = {
     getTopAuthors,
     getTopPublishers,
     getBooksByCategory,
+    getLatestActiveCoupon,
 };

@@ -201,6 +201,7 @@ npm start       # Production
 | `GET` | `/categories` | Public | All categories |
 | `GET` | `/categories/:slug/books` | Public | Books filtered by category slug |
 | `GET` | `/combos` | Public | Active combo offers |
+| `GET` | `/coupons/latest` | Public | Latest active promotional coupon |
 
 #### `GET /books`
 ```
@@ -286,6 +287,21 @@ npm start       # Production
 ```json
 // Response 200
 { "success": true, "combos": [ { "id": "uuid", "title": "Dev Pack", "price": 1200, "imageUrls": ["..."], "comboItems": [ { "book": { "id": "uuid", "title": "...", "price": 500, "imageUrls": ["..."] } } ] } ] }
+```
+
+#### `GET /coupons/latest`
+```json
+// Response 200 (if active coupon exists)
+{ 
+  "success": true, 
+  "coupon": { "id": "uuid", "code": "SUMMER10", "type": "PERCENTAGE", "value": 10, "minSpend": 500, "validUntil": "2026-12-31T23:59:59.000Z" } 
+}
+
+// Response 200 (if no active coupon exists)
+{ 
+  "success": true, 
+  "message": "No active coupon" 
+}
 ```
 
 ---

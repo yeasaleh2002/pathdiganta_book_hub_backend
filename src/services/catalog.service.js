@@ -246,6 +246,15 @@ const getTopPublishers = async () => {
         .map(({ _count, ...rest }) => rest);
 };
 
+const getLatestActiveCoupon = async () => {
+    return prisma.coupon.findFirst({
+        where: {
+            validUntil: { gt: new Date() }
+        },
+        orderBy: { validUntil: 'desc' }
+    });
+};
+
 module.exports = {
     getBooks,
     searchBooks,
@@ -259,4 +268,5 @@ module.exports = {
     getBestSellers,
     getTopAuthors,
     getTopPublishers,
+    getLatestActiveCoupon,
 };
