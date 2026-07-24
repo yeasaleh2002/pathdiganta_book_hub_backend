@@ -48,11 +48,29 @@ const getCoupons = async () => prisma.coupon.findMany();
 const deleteCoupon = async (id) => prisma.coupon.delete({ where: { id } });
 
 // Notifications
-const getAdminNotifications = async (limit = 50) => {
-    return prisma.adminNotification.findMany({
-        take: Number(limit),
+const getAdminNotifications = async (limit = 20, cursor = null) => {
+    const take = Number(limit);
+    const query = {
+        take,
         orderBy: { createdAt: 'desc' }
-    });
+    };
+    
+    if (cursor) {
+        query.skip = 1;
+        query.cursor = { id: cursor };
+    }
+
+    const notifications = await prisma.adminNotification.findMany(query);
+    
+    const nextCursor = notifications.length === take ? notifications[notifications.length - 1].id : null;
+    
+    const unreadCount = await prisma.adminNotification.count({ where: { isRead: false } });
+
+    return {
+        notifications,
+        nextCursor,
+        unreadCount
+    };
 };
 
 const markNotificationAsRead = async (id) => {

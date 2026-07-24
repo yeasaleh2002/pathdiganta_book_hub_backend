@@ -146,9 +146,10 @@ const deleteCoupon = async (req, res, next) => {
 // Notifications
 const getAdminNotifications = async (req, res, next) => {
     try {
-        const limit = req.query.limit || 50;
-        const notifications = await adminService.getAdminNotifications(limit);
-        res.status(200).json({ success: true, notifications });
+        const limit = req.query.limit || 20;
+        const cursor = req.query.cursor || null;
+        const result = await adminService.getAdminNotifications(limit, cursor);
+        res.status(200).json({ success: true, ...result });
     } catch (error) {
         next(error);
     }
