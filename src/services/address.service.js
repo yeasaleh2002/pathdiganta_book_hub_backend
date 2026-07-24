@@ -40,6 +40,12 @@ const updateAddress = async (userId, id, data) => {
 
 const deleteAddress = async (userId, id) => {
     await getAddressById(userId, id); // Enforce ownership
+    
+    const orderCount = await prisma.order.count({ where: { addressId: id } });
+    if (orderCount > 0) {
+        throw { statusCode: 400, message: 'Cannot delete address as it is associated with one or more past orders.' };
+    }
+
     return prisma.address.delete({ where: { id } });
 };
 
