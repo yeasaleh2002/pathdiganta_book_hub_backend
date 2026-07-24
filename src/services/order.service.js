@@ -142,6 +142,13 @@ const getAdminOrders = async (page = 1, limit = 20) => {
 };
 
 const updateOrderStatus = async (orderId, status, trackingLink) => {
+    const existingOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { orderStatus: true, grandTotal: true, userId: true }
+    });
+
+    if (!existingOrder) throw { statusCode: 404, message: 'Order not found' };
+
     const order = await prisma.order.update({
         where: { id: orderId },
         data: { 
@@ -150,6 +157,18 @@ const updateOrderStatus = async (orderId, status, trackingLink) => {
         },
         include: { user: { select: { email: true, name: true } } }
     });
+
+    // If transitioning to DELIVERED, award loyalty points (60 points per 1000 spend)
+    if (existingOrder.orderStatus !== 'DELIVERED' && status === 'DELIVERED') {
+        const pointsToAdd = Math.ceil((Number(existingOrder.grandTotal) / 1000) * 60);
+        if (pointsToAdd > 0) {
+            await prisma.user.update({
+                where: { id: existingOrder.userId },
+                data: { loyaltyPoints: { increment: pointsToAdd } }
+            });
+            console.log(`Awarded ${pointsToAdd} loyalty points to user ${existingOrder.userId} for order ${order.orderNumber}`);
+        }
+    }
     
     console.log(`--- MOCK ORDER NOTIFICATION ---`);
     console.log(`To: ${order.user.email}`);
