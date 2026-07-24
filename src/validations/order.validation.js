@@ -15,7 +15,10 @@ const checkoutSchema = z.object({
 
 const updateOrderStatusSchema = z.object({
     body: z.object({
-        status: z.enum(['NEW', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED']),
+        status: z.preprocess(
+            (val) => (typeof val === 'string' ? val.toUpperCase() : val),
+            z.enum(['NEW', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'RETURNED'])
+        ),
         trackingLink: z.string().url().optional()
     })
 });
