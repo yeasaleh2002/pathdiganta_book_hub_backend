@@ -13,4 +13,23 @@ const getLatestCoupon = async (req, res, next) => {
     }
 };
 
-module.exports = { getLatestCoupon };
+const validateCoupon = async (req, res, next) => {
+    try {
+        const { code, subtotal } = req.body;
+        if (!code || !subtotal) {
+            return res.status(400).json({ success: false, message: "Code and subtotal are required" });
+        }
+        
+        const result = await couponService.validateCoupon(code, Number(subtotal));
+        
+        if (result.valid) {
+            res.status(200).json({ success: true, discount: result.discount, coupon: result.coupon });
+        } else {
+            res.status(400).json({ success: false, message: result.message });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { getLatestCoupon, validateCoupon };
